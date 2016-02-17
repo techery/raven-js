@@ -1,4 +1,4 @@
-/*! Raven.js 2.1.0 (9ca11cd) | github.com/getsentry/raven-js */
+/*! Raven.js 2.2.0-beta (4ff1b84) | github.com/getsentry/raven-js */
 
 /*
  * Includes TraceKit
@@ -26,9 +26,9 @@ module.exports = RavenConfigError;
 /*global XDomainRequest:false*/
 'use strict';
 
-var TraceKit = _dereq_('../vendor/TraceKit/tracekit');
-var RavenConfigError = _dereq_('./configError');
-var utils = _dereq_('./utils');
+var TraceKit = _dereq_(5);
+var RavenConfigError = _dereq_(1);
+var utils = _dereq_(4);
 
 var isFunction = utils.isFunction;
 var isUndefined = utils.isUndefined;
@@ -100,7 +100,7 @@ Raven.prototype = {
     // webpack (using a build step causes webpack #1617). Grunt verifies that
     // this value matches package.json during build.
     //   See: https://github.com/getsentry/raven-js/issues/465
-    VERSION: '2.1.0',
+    VERSION: '2.2.0-beta',
 
     debug: false,
 
@@ -246,7 +246,14 @@ Raven.prototype = {
         }
 
         // We don't wanna wrap it twice!
-        if (func.__raven__) {
+        try {
+            if (func.__raven__) {
+                return func;
+            }
+        } catch (e) {
+            // Just accessing the __raven__ prop in some Selenium environments
+            // can cause a "Permission denied" exception (see raven-js#495).
+            // Bail on wrapping and return the function as-is (defers to window.onerror).
             return func;
         }
 
@@ -816,7 +823,7 @@ Raven.prototype = {
             // first we check the global includePaths list.
             !!this._globalOptions.includePaths.test && !this._globalOptions.includePaths.test(normalized.filename) ||
             // Now we check for fun, if the function name is Raven or TraceKit
-            /(Raven|TraceKit)\./.test(normalized.function) ||
+            /(Raven|TraceKit)\./.test(normalized['function']) ||
             // finally, we do a last ditch effort and check for raven.min.js
             /raven\.(min\.)?js$/.test(normalized.filename)
         );
@@ -978,11 +985,9 @@ Raven.prototype = {
 
         // Include the release if it's defined in globalOptions
         if (globalOptions.release) data.release = globalOptions.release;
+
         // Include server_name if it's defined in globalOptions
         if (globalOptions.serverName) data.server_name = globalOptions.serverName;
-
-        // Include the release if it's defined in globalOptions
-        if (globalOptions.release) data.release = globalOptions.release;
 
         if (isFunction(globalOptions.dataCallback)) {
             data = globalOptions.dataCallback(data) || data;
@@ -1130,7 +1135,7 @@ Raven.prototype.setReleaseContext = Raven.prototype.setRelease;
 
 module.exports = Raven;
 
-},{"../vendor/TraceKit/tracekit":5,"./configError":1,"./utils":4}],3:[function(_dereq_,module,exports){
+},{"1":1,"4":4,"5":5}],3:[function(_dereq_,module,exports){
 /**
  * Enforces a single instance of the Raven client, and the
  * main entry point for Raven. If you are a consumer of the
@@ -1139,7 +1144,7 @@ module.exports = Raven;
 
 'use strict';
 
-var RavenConstructor = _dereq_('./raven');
+var RavenConstructor = _dereq_(2);
 
 var _Raven = window.Raven;
 
@@ -1160,7 +1165,7 @@ Raven.afterLoad();
 
 module.exports = Raven;
 
-},{"./raven":2}],4:[function(_dereq_,module,exports){
+},{"2":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var objectPrototype = Object.prototype;
@@ -1320,7 +1325,7 @@ module.exports = {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var utils = _dereq_('../../src/utils');
+var utils = _dereq_(4);
 
 var hasKey = utils.hasKey;
 var isString = utils.isString;
@@ -2401,5 +2406,5 @@ TraceKit.computeStackTrace = (function computeStackTraceWrapper() {
 
 module.exports = TraceKit;
 
-},{"../../src/utils":4}]},{},[3])(3)
+},{"4":4}]},{},[3])(3)
 });
